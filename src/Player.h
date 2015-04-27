@@ -23,8 +23,8 @@ public:
         vidas = 3;
     }
     
-    void update(){
-        location.x = ofGetMouseX() - w/2;
+    void update( float xLocation ){
+        location.x = xLocation - w/2;
     }
     
     void draw(){

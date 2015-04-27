@@ -2,54 +2,51 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    ofBackgroundHex(0x222222);
+
+    // Setup game
     ofSetFrameRate(60);
+    ofBackgroundHex(0x222222);
+    useOSC = false; // If useOSC is false, use the mouse
+    if( useOSC ) receiver.setup(12345); // start to listen OSC messages on port 12345
+    gameState = "loading";
     
-    // Inicializar mundo
+    // Initialize world
     box2d.init();
     box2d.enableEvents();   // <-- turn on the event listener
     box2d.setGravity(0, -5);
     box2d.createBounds();
-    //box2d.setFPS(30.0);
     box2d.registerGrabbing();
+    //box2d.setFPS(30.0);
     
-    // Estado inicial
-    estado = "precarga";
-    puntos = 0;
+    // Initialize participants
+    player.setup(); // Player
+    ball.setup(); // Ball
     
-    // Player
-    player.setup();
-    
-    // Ball
-    ball.setup();
-    
-    // listen to any of the events for the game
+    // Listen to any of the events for the game
     ofAddListener(GameEvent::events, this, &ofApp::gameEvent);
-    
-    // Type of tracking
-    oscTracking = false;
-    
-    // start to listen OSC messages on port 12345
-    receiver.setup(12345);
+
 }
 
 //--------------------------------------------------------------
 void ofApp::gameEvent(GameEvent &e) {
     
-    // Reventar globo
-    if ( e.message == "reventar-globo" ) {
-        cout << "Game Event: "+e.message << endl;
-        // Sumar puntos
-        puntos ++;
+    cout << "Game Event: "+e.message << endl;
+
+    // Reventar globo A
+    if ( e.message == "beat-brick-a" ) {
+        score ++; // Increment score
     }
-    
-    // Reventar globo especial
-    if ( e.message == "reventar-globo-a" ) {
-        cout << "Game Event: "+e.message << endl;
+    else if ( e.message == "beat-brick-b" ){
         // Cambiar color de la pelota por x tiempo
-        // Los puntos suman doble
+        // Los score suman doble
         ball.color.setHex(0xff0000);
-        puntos += 2;
+        score += 2;
+    }
+    else if ( e.message == "beat-brick-c" ) {
+        score ++; // Increment score by 1
+    }
+    else if ( e.message == "beat-brick-d" ) {
+        score ++; // Increment score by 1
     }
     
 }
@@ -67,27 +64,50 @@ bool ofApp::playerCollision(Player &p) {
 //--------------------------------------------------------------
 void ofApp::update(){
     
-    // listen OSC messages
-    while( receiver.hasWaitingMessages() ){
-        // Get the next message
-        ofxOscMessage m;
-        receiver.getNextMessage( &m );
-        // Parse message, for example:
-        if( m.getAddress() == "/biggestBlobXPos" ){
-            // Get first argument, biggest blog position normalized [0,1]
-            float biggestBlobXPos = m.getArgAsFloat(0);
-            // Use blob position for our player
-            player.location.x = ofMap( biggestBlobXPos, 0,1, 0,ofGetWidth() );
+    // Player position
+    if ( useOSC ) {
+        while( receiver.hasWaitingMessages() ){
+            
+            // Get the next message
+            ofxOscMessage m;
+            receiver.getNextMessage( &m );
+            
+            // Parse message, for example:
+            if( m.getAddress() == "/biggestBlobXPos" ){
+                // Get first argument, biggest blog position normalized [0,1]
+                float biggestBlobXPos = m.getArgAsFloat(0);
+                // Use blob position for our player
+                player.update( ofMap( biggestBlobXPos, 0,1, 0,ofGetWidth() ) );
+            }
         }
+    } else {
+        player.update( ofGetMouseX() ); // use mouseX position
     }
     
     // Avanzar mundo
     box2d.update();
     
-    // Seleccionar estado
-    if ( estado=="precarga" ) {
+    // Update gameState
+    if ( gameState=="loading" ) {
+        gameState = "startGame"; // Wait for a user
+    }
+    
+    else if ( gameState=="startGame" ) {
+
+        score = 0; // Initial score
+        player.vidas = 3; // Player lifes
         
-        // Construir Ventanas
+        gameState = "welcomeVideo"; // Play welcome video
+    }
+
+    else if ( gameState=="welcomeVideo" ) {
+        gameState = "createLevel"; // Create level
+    }
+    
+    else if ( gameState=="createLevel" ) {
+        // level.create(); sounds much better than this...
+
+        // Place obstacles
         if( ventanas.size() < 3 ){
             ofPtr <ofxBox2dRect> ventana = ofPtr <ofxBox2dRect>(new ofxBox2dRect); // crear objeto
             ventana.get()->setPhysics(0, 0.5, 0.9); // densidad, rebote, friccion
@@ -95,7 +115,7 @@ void ofApp::update(){
             ventanas.push_back(ventana); // sumar al final del arreglo
         }
         
-        // Tirar Globos
+        // Create bricks
         if( bricks.size() < 20 ){
             
             if( (int)ofRandom(0, 50) == 0 ) {
@@ -108,19 +128,13 @@ void ofApp::update(){
             }
             
         } else {
-            
-            // Comenzar a jugar nivel
-            estado = "nivel";
+            gameState = "playLevel"; // Start to play
         }
         
     }
-    else if ( estado=="nivel" ) {
-        
-        // Player
-        if ( !oscTracking ) {
-            player.update();
-        }
-        
+    
+    else if ( gameState=="playLevel" ) {
+
         // Ball
         ball.update();
         
@@ -169,33 +183,62 @@ void ofApp::update(){
                 }
                 
                 // Enviar mensaje segœn tipo de globo
-                if( bricks[i].get()->bName == "a" ){
-                    static GameEvent newEvent;
-                    newEvent.message = "reventar-globo-a";
-                    ofNotifyEvent(GameEvent::events, newEvent);
-                }
+                static GameEvent newEvent;
+                newEvent.message = "beat-brick-" + bricks[i].get()->bName;
+                ofNotifyEvent(GameEvent::events, newEvent);
                 
                 // Eliminar ladrillo
                 bricks[i].get()->bRemove = true;
             }
         }
-        // Revisar si tiene que eliminar algœn globo
+        // Remove beaten bricks
         ofRemove(bricks, shouldRemoveBrick);
         
-        // Pierde una vida
+        // Life lost
         if ( ball.location.y > ofGetHeight() ){
             ball.direction.y = -10;
             ball.direction.x = 0;
             player.vidas--;
-        }
-        
-        // Se queda sin vidas
-        if ( player.vidas <= 0 ){
-            estado = "gameOver";
+            
+            if ( player.vidas <= 0 ){
+                gameState = "gameEnd";  // Game over
+            }
         }
         
     }
+    
+    else if ( gameState=="gameEnd" ) {
+        
+        // You Win
+        if ( bricks.size() <= 0 ) {
+        }
+        
+        // Game over
+        if ( bricks.size() > 0 ) {
+            
+            // Remove unbeaten bricks
+            for( int i=0; i<bricks.size(); i++){
+                if( bricks[i].get()->bName == "a" ){
+                    static GameEvent newEvent;
+                    newEvent.message = "reventar-globo-a";
+                    ofNotifyEvent(GameEvent::events, newEvent);
+                }
+                bricks[i].get()->bRemove = true;
+            }
+            ofRemove(bricks, shouldRemoveBrick);
+        }
+
+        gameState = "goodbyeVideo"; // Play goodbye video
+    }
+    
+    
+    else if ( gameState=="goodbyeVideo" ) {
+        gameState = "startGame"; // Re-start game
+    }
+    
     else {
+        // If something fails, re-start game
+        gameState = "startGame";
     }
     
 }
@@ -215,10 +258,10 @@ void ofApp::draw(){
         bricks[i].get()->draw();
     }
     
-    // Segœn estado
-    if ( estado=="precarga" ) {
+    // Segœn gameState
+    if ( gameState=="createLevel" ) {
     }
-    else if ( estado=="nivel" ) {
+    else if ( gameState=="playLevel" ) {
         
         // Player
         player.draw();
@@ -230,19 +273,19 @@ void ofApp::draw(){
     }
     
     
-    // Info
+    // Game info
     ofSetColor(225);
     string info = "";
     info += "VIDAS: "+ofToString(player.vidas, 1)+"\n";
-    info += "PUNTOS: "+ofToString(puntos, 1)+"\n";
+    info += "PUNTOS: "+ofToString(score, 1)+"\n";
     ofDrawBitmapString(info, 10, 10);
     
     
-    // Debug info
+    // Show debug info
     if (debug) {
         string debugTxt = "";
         debugTxt += "FPS: "+ofToString(ofGetFrameRate(), 1)+"\n";
-        debugTxt += "Estado: "+ofToString(estado, 1)+"\n";
+        debugTxt += "gameState: "+ofToString(gameState, 1)+"\n";
         debugTxt += "Location.x: "+ofToString(ball.location.x, 1)+"\n";
         ofDrawBitmapString(debugTxt, 30, ofGetHeight()-90);
     }
@@ -250,18 +293,17 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    switch (key) {
-        case ' ':
-            break;
-        case'p':
-            break;
-    }
-    
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-    if ( key == 'd' || key == 'D' ){ debug = !debug; }
+    switch (key) {
+        case ' ':
+            break;
+        case'd':
+            debug = !debug;
+            break;
+    }
 }
 
 //--------------------------------------------------------------
@@ -286,7 +328,7 @@ void ofApp::mouseReleased(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
-    
+    box2d.createBounds(); // Update bounds
 }
 
 //--------------------------------------------------------------

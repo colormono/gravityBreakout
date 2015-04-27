@@ -30,20 +30,20 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
     
-    // this is the function for contacts
+    // Contact events
     void contactStart(ofxBox2dContactArgs &e);
     void contactEnd(ofxBox2dContactArgs &e);
+
+    ofxBox2d box2d; // 2d world
     
-    ofxBox2d box2d; // mundo
-    
-    vector <ofPtr<ofxBox2dRect> > ventanas; // Ventanas (solidos)
-    vector <ofPtr<Brick> > bricks; // Globos
+    vector <ofPtr<ofxBox2dRect> > ventanas; // Ventanas (obstacles)
+    vector <ofPtr<Brick> > bricks; // Globos (breakball bricks like)
     Player player; // Jugador
     Ball ball; // Pelota
     
-    bool debug = true; // Debug Info
-    string estado;  // Estado Inicial
-    int puntos; // Puntos
+    bool debug = true; // Show debug info
+    string gameState;  // Game state
+    int score; // Score
     
     // Eventos
     static bool shouldRemoveBrick(ofPtr<Brick> &b);
@@ -51,7 +51,7 @@ public:
     void gameEvent(GameEvent &e);
     
     // OSC Tracking
-    bool oscTracking;
+    bool useOSC;
     ofxOscReceiver receiver;
     
 };

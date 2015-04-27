@@ -6,24 +6,40 @@
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>E06218F7-4B8A-4857-B688-0D7F1950D5EB</string>
+	<key>IDESourceControlProjectName</key>
+	<string>myArkanoidOSC</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>903165F9FDCB952EAE50578862E56DA722F43224</key>
 		<string>https://github.com/vanderlin/ofxBox2d</string>
+		<key>EDC852E5C2D6C2C79FD9F109055A511A1AD02FFB</key>
+		<string>https://github.com/colormono/gravityBreakout.git</string>
 	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>myArkanoidOSC.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>903165F9FDCB952EAE50578862E56DA722F43224</key>
-		<string>ofxBox2d/</string>
+		<string>../../../../../addons/ofxBox2d</string>
+		<key>EDC852E5C2D6C2C79FD9F109055A511A1AD02FFB</key>
+		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/vanderlin/ofxBox2d</string>
+	<string>https://github.com/colormono/gravityBreakout.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>903165F9FDCB952EAE50578862E56DA722F43224</string>
+	<string>EDC852E5C2D6C2C79FD9F109055A511A1AD02FFB</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>EDC852E5C2D6C2C79FD9F109055A511A1AD02FFB</string>
+			<key>IDESourceControlWCCName</key>
+			<string>gravityBreakout</string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
