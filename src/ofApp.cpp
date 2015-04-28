@@ -6,9 +6,11 @@ void ofApp::setup(){
     // Setup game
     ofSetFrameRate(60);
     ofBackgroundHex(0x222222);
-    useOSC = false; // If useOSC is false, use the mouse
+    useOSC = true; // If useOSC is false, use the mouse
     if( useOSC ) receiver.setup(12345); // start to listen OSC messages on port 12345
     gameState = "loading";
+    debug = true;
+    countdown = true;
     
     // Initialize world
     box2d.init();
@@ -32,7 +34,7 @@ void ofApp::gameEvent(GameEvent &e) {
     
     cout << "Game Event: "+e.message << endl;
 
-    // Reventar globo A
+    // Beat brick
     if ( e.message == "beat-brick-a" ) {
         score ++; // Increment score
     }
@@ -79,8 +81,16 @@ void ofApp::update(){
                 // Use blob position for our player
                 player.update( ofMap( biggestBlobXPos, 0,1, 0,ofGetWidth() ) );
             }
+            
+            // Get the next message
+            ofxOscMessage b;
+            receiver.getNextMessage( &b );
+            if( b.getAddress() == "/userAvailable" ){
+                userAvailable = b.getArgAsInt32(0);
+            }
         }
     } else {
+        userAvailable = 1;
         player.update( ofGetMouseX() ); // use mouseX position
     }
     
@@ -89,10 +99,18 @@ void ofApp::update(){
     
     // Update gameState
     if ( gameState=="loading" ) {
-        gameState = "startGame"; // Wait for a user
+        if( countdown ){
+            timer = ofGetElapsedTimef(); // Update clock
+            countdown = false;
+        } else {
+            if( ofGetElapsedTimef() - timer > 3 ){
+                gameState = "startGame"; // Wait for a user
+            }
+        }
     }
     
     else if ( gameState=="startGame" ) {
+        timer = ofGetElapsedTimef(); // Update clock
 
         score = 0; // Initial score
         player.vidas = 3; // Player lifes
@@ -101,6 +119,7 @@ void ofApp::update(){
     }
 
     else if ( gameState=="welcomeVideo" ) {
+        timer = ofGetElapsedTimef(); // Update clock
         gameState = "createLevel"; // Create level
     }
     
@@ -127,6 +146,8 @@ void ofApp::update(){
                 bricks.push_back(b);
             }
             
+            timer = ofGetElapsedTimef(); // Update clock
+            
         } else {
             gameState = "playLevel"; // Start to play
         }
@@ -134,9 +155,11 @@ void ofApp::update(){
     }
     
     else if ( gameState=="playLevel" ) {
-
+        
+        if( userAvailable ){
         // Ball
         ball.update();
+        }
         
         // Detect Player Collision
         //ball.collisionPlayer(player);
@@ -196,13 +219,19 @@ void ofApp::update(){
         
         // Life lost
         if ( ball.location.y > ofGetHeight() ){
-            ball.direction.y = -10;
-            ball.direction.x = 0;
-            player.vidas--;
+            
+            player.vidas--; // die
             
             if ( player.vidas <= 0 ){
+                timer = ofGetElapsedTimef(); // Update clock
                 gameState = "gameEnd";  // Game over
+            } else {
+                ball.location.x = ofGetWidth()/2; // center
+                ball.location.y = ofGetHeight()-50; // bottom
+                ball.direction.y = -10; // invert y velocity
+                ball.direction.x = 0; // reset x velocity
             }
+
         }
         
     }
@@ -228,16 +257,20 @@ void ofApp::update(){
             ofRemove(bricks, shouldRemoveBrick);
         }
 
+        timer = ofGetElapsedTimef(); // Update clock
         gameState = "goodbyeVideo"; // Play goodbye video
     }
     
     
     else if ( gameState=="goodbyeVideo" ) {
+
+        timer = ofGetElapsedTimef(); // Update clock
         gameState = "startGame"; // Re-start game
     }
     
     else {
         // If something fails, re-start game
+        timer = ofGetElapsedTimef(); // Update clock
         gameState = "startGame";
     }
     
@@ -278,7 +311,7 @@ void ofApp::draw(){
     string info = "";
     info += "VIDAS: "+ofToString(player.vidas, 1)+"\n";
     info += "PUNTOS: "+ofToString(score, 1)+"\n";
-    ofDrawBitmapString(info, 10, 10);
+    ofDrawBitmapString(info, 10, 20);
     
     
     // Show debug info

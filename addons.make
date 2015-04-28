@@ -1,3 +1,4 @@
 ofxOpenCv
 ofxOsc
+ofxXmlSettings
 ofxBox2d

@@ -4,6 +4,7 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 #include "ofxBox2d.h"
+#include "ofxXmlSettings.h"
 #include "ofxOsc.h"
 
 // Classes
@@ -33,26 +34,24 @@ public:
     // Contact events
     void contactStart(ofxBox2dContactArgs &e);
     void contactEnd(ofxBox2dContactArgs &e);
-
-    ofxBox2d box2d; // 2d world
-    
-    vector <ofPtr<ofxBox2dRect> > ventanas; // Ventanas (obstacles)
-    vector <ofPtr<Brick> > bricks; // Globos (breakball bricks like)
-    Player player; // Jugador
-    Ball ball; // Pelota
-    
-    bool debug = true; // Show debug info
-    string gameState;  // Game state
-    int score; // Score
-    
-    // Eventos
     static bool shouldRemoveBrick(ofPtr<Brick> &b);
     static bool playerCollision(Player &p);
     void gameEvent(GameEvent &e);
+
+    ofxBox2d box2d; // 2d world
+    vector <ofPtr<ofxBox2dRect> > ventanas; // Obstacles
+    vector <ofPtr<Brick> > bricks; // Bricks
+    Player player; // Player
+    Ball ball; // Ball
+    float timer; // Clock for timing events
+    bool countdown; // Countdown trigger
     
-    // OSC Tracking
-    bool useOSC;
-    ofxOscReceiver receiver;
+    bool debug; // Show debug info
+    string gameState;  // Game state
+    int score; // Score
+    bool useOSC; // OSC Tracking
+    int userAvailable; // Check if there is a user
+    ofxOscReceiver receiver; // OSC Receiver
     
 };
 
