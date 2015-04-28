@@ -1,0 +1,17 @@
+<GAME>
+    <debug>0</debug>
+    <useOSC>0</useOSC>
+    <oscPort>12345</oscPort>
+    <background>0,100,255</background>
+</GAME>
+
+<BALL>
+    <size>10</size>
+    <color>0,100,255</color>   
+</BALL>
+
+<PLAYER>
+    <width>120</width>
+    <color>0,100,255</color>
+    <lives>3</lives>
+</PLAYER>

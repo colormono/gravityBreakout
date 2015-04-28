@@ -12,23 +12,24 @@ class Player{
 public:
     
     ofPoint location;
-    int vidas;
+    int lives;
     int w;
-    int c;
+    ofColor color;
     
     void setup(){
         location.x = ofGetWidth()/2;
         location.y = ofGetHeight()-30;
         w = 100;
-        vidas = 3;
+        color = 255;
+        lives = 3;
     }
     
-    void update( float xLocation ){
-        location.x = xLocation - w/2;
+    void update( float x ){
+        location.x = x - w/2;
     }
     
     void draw(){
-        ofSetHexColor(0x00CCFF);
+        ofSetColor(color);
         ofFill();
         ofRect( location.x, location.y, w, 10 );
     }

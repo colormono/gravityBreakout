@@ -20,7 +20,7 @@ public:
         location = ofVec3f( ofGetWidth()/2, ofGetHeight()-30, 0 );
         direction = ofVec3f( 0, 0, 0 );
         diametro = 10;
-        color = 0xffffff;
+        color = 255;
     }
     
     void update(){
@@ -46,7 +46,7 @@ public:
     }
     
     void draw(){
-        ofSetColor(color);
+        ofSetColor( color );
         ofFill();
         ofCircle( location, diametro );
     }

@@ -30,13 +30,16 @@ public:
     void windowResized(int w, int h);
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
-    
-    // Contact events
+
     void contactStart(ofxBox2dContactArgs &e);
     void contactEnd(ofxBox2dContactArgs &e);
     static bool shouldRemoveBrick(ofPtr<Brick> &b);
     static bool playerCollision(Player &p);
     void gameEvent(GameEvent &e);
+
+    ofxXmlSettings XML; // XML settings
+    string xmlStructure;
+    string message;
 
     ofxBox2d box2d; // 2d world
     vector <ofPtr<ofxBox2dRect> > ventanas; // Obstacles
@@ -52,6 +55,7 @@ public:
     bool useOSC; // OSC Tracking
     int userAvailable; // Check if there is a user
     ofxOscReceiver receiver; // OSC Receiver
+    
     
 };
 

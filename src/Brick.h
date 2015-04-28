@@ -43,7 +43,7 @@ public:
         
         bName = theData->name;
         
-        cout << "nuevo globo, llamado:"+ bName << endl;
+        //cout << "nuevo globo, llamado:"+ bName << endl;
         
     }
     
@@ -58,11 +58,11 @@ public:
             
             float radius = getRadius();
             ofPushMatrix();
-            ofTranslate(getPosition());
-            //ofRotateZ(getRotation());
-            ofSetColor(theData->color);
+            ofTranslate( getPosition() );
+            //ofRotateZ( getRotation() );
+            ofSetColor( theData->color );
             ofFill();
-            ofCircle(0, 0, radius);
+            ofCircle( 0, 0, radius );
             ofPopMatrix();
             
         }

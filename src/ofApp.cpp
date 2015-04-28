@@ -2,28 +2,40 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    
+    // Load XML settings
+    message = "loading gameSettings.xml";
+    if( XML.loadFile("gameSettings.xml") ) message = "gameSettings.xml loaded!";
+    else message = "unable to load gameSettings.xml check data/ folder";
+    cout << "xml status: " << message << endl;
 
     // Setup game
     ofSetFrameRate(60);
-    ofBackgroundHex(0x222222);
-    useOSC = true; // If useOSC is false, use the mouse
-    if( useOSC ) receiver.setup(12345); // start to listen OSC messages on port 12345
+    debug = XML.getValue("GAME:debug", 0); // If useOSC is false, use the mouse
+    useOSC = XML.getValue("GAME:useOSC", 1); // If useOSC is false, use the mouse
+    if( useOSC ) receiver.setup( XML.getValue("GAME:oscPort", 12345) ); // start to listen OSC messages on port 12345
     gameState = "loading";
-    debug = true;
     countdown = true;
+    
+    // Styles
+    ofBackground( XML.getValue("GAME:background", 100) );
     
     // Initialize world
     box2d.init();
-    box2d.enableEvents();   // <-- turn on the event listener
+    box2d.enableEvents(); // <-- turn on the event listener
     box2d.setGravity(0, -5);
     box2d.createBounds();
     box2d.registerGrabbing();
     //box2d.setFPS(30.0);
     
     // Initialize participants
-    player.setup(); // Player
-    ball.setup(); // Ball
+    player.setup();
+    player.w = XML.getValue("PLAYER:width", 100);
+    //player.color = XML.getValue("PLAYER:color", 255);
+    //player.lives = XML.getValue("PLAYER:lives", 3);
     
+    ball.setup();
+
     // Listen to any of the events for the game
     ofAddListener(GameEvent::events, this, &ofApp::gameEvent);
 
@@ -40,7 +52,6 @@ void ofApp::gameEvent(GameEvent &e) {
     }
     else if ( e.message == "beat-brick-b" ){
         // Cambiar color de la pelota por x tiempo
-        // Los score suman doble
         ball.color.setHex(0xff0000);
         score += 2;
     }
@@ -113,7 +124,7 @@ void ofApp::update(){
         timer = ofGetElapsedTimef(); // Update clock
 
         score = 0; // Initial score
-        player.vidas = 3; // Player lifes
+        player.lives = XML.getValue("STYLE:playerLives", 3); // Player lives
         
         gameState = "welcomeVideo"; // Play welcome video
     }
@@ -129,7 +140,7 @@ void ofApp::update(){
         // Place obstacles
         if( ventanas.size() < 3 ){
             ofPtr <ofxBox2dRect> ventana = ofPtr <ofxBox2dRect>(new ofxBox2dRect); // crear objeto
-            ventana.get()->setPhysics(0, 0.5, 0.9); // densidad, rebote, friccion
+            ventana.get()->setPhysics(0, 0.5, 0.9); // density, bounce, friction
             ventana.get()->setup( box2d.getWorld(), ofRandom(0, ofGetWidth()), ofGetHeight()/2+ofRandom(-100,100), 40, 40 ); // world, x, y, w, h
             ventanas.push_back(ventana); // sumar al final del arreglo
         }
@@ -139,7 +150,7 @@ void ofApp::update(){
             
             if( (int)ofRandom(0, 50) == 0 ) {
                 ofPtr<Brick> b = ofPtr<Brick>(new Brick); // crear objeto
-                b.get()->setPhysics(0.9, 0.5, 0.1); // densidad, rebote, friccion
+                b.get()->setPhysics(0.9, 0.5, 0.1); // density, bounce, friction
                 b.get()->setup(box2d.getWorld(), ofRandom(0, ofGetWidth()), ofGetHeight()-20, ofRandom(20, 60)); // world, x, y, radio
                 //b.get()->setVelocity(ofRandom(-30, 30), ofRandom(-30, 30));
                 b.get()->setupTheCustomData(false);
@@ -157,8 +168,8 @@ void ofApp::update(){
     else if ( gameState=="playLevel" ) {
         
         if( userAvailable ){
-        // Ball
-        ball.update();
+            // Ball
+            ball.update();
         }
         
         // Detect Player Collision
@@ -220,9 +231,9 @@ void ofApp::update(){
         // Life lost
         if ( ball.location.y > ofGetHeight() ){
             
-            player.vidas--; // die
+            player.lives--; // die
             
-            if ( player.vidas <= 0 ){
+            if ( player.lives <= 0 ){
                 timer = ofGetElapsedTimef(); // Update clock
                 gameState = "gameEnd";  // Game over
             } else {
@@ -309,7 +320,7 @@ void ofApp::draw(){
     // Game info
     ofSetColor(225);
     string info = "";
-    info += "VIDAS: "+ofToString(player.vidas, 1)+"\n";
+    info += "VIDAS: "+ofToString(player.lives, 1)+"\n";
     info += "PUNTOS: "+ofToString(score, 1)+"\n";
     ofDrawBitmapString(info, 10, 20);
     
@@ -335,6 +346,13 @@ void ofApp::keyReleased(int key){
             break;
         case'd':
             debug = !debug;
+            break;
+        case 's':
+            //update the setup to the XML
+            XML.setValue("GAME:debug", debug);
+            XML.saveFile("gameSettings.xml");
+            message ="settings saved to xml!";
+            cout << "xml status: " << message << endl;
             break;
     }
 }

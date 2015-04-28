@@ -20,7 +20,7 @@
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>903165F9FDCB952EAE50578862E56DA722F43224</key>
-		<string>../../../../../addons/ofxBox2d</string>
+		<string>../../../addons/ofxBox2d</string>
 		<key>EDC852E5C2D6C2C79FD9F109055A511A1AD02FFB</key>
 		<string>../..</string>
 	</dict>
