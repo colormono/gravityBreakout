@@ -27,7 +27,7 @@ public:
         
         // Despegar
         if ( direction.y == 0 ) {
-            direction.y = -10;
+            direction.y = -6;
         }
         
         // Actualizar posición

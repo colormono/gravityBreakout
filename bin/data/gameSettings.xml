@@ -8,6 +8,8 @@
 <BALL>
     <size>10</size>
     <color>0,100,255</color>   
+    <initialVelocity>6</initialVelocity>
+    <maxVelocity>10</maxVelocity>
 </BALL>
 
 <PLAYER>
@@ -15,3 +17,11 @@
     <color>0,100,255</color>
     <lives>3</lives>
 </PLAYER>
+
+<BRICKS>
+	<quantity></quantity>
+	<minSize></minSize>
+	<maxSize></maxSize>
+	<colors>[]</colors>
+	<textures>[]</textures>
+</BRICKS>

@@ -37,6 +37,14 @@ void ofApp::setup(){
     
     ball.setup();
     
+    // Load Images
+    ofDirectory dir;
+    ofDisableArbTex();
+    int n = dir.listDir("textures");
+    for (int i=0; i<n; i++) {
+        textures.push_back( ofImage(dir.getPath(i)) );
+    }
+        
     // Load Sounds
     string soundFolder = "sounds/";
     soundStart.loadSound( soundFolder+"start.mp3" );
@@ -57,12 +65,12 @@ void ofApp::gameEvent(GameEvent &e) {
 
     // Beat brick
     if ( e.message == "beat-brick-a" ) {
-        score ++; // Increment score
-    }
-    else if ( e.message == "beat-brick-b" ){
         // Cambiar color de la pelota por x tiempo
         ball.color.setHex(0xff0000);
-        score += 2;
+        score += 2; // Increment score by 2
+    }
+    else if ( e.message == "beat-brick-b" ){
+        score ++; // Increment score by 1
     }
     else if ( e.message == "beat-brick-c" ) {
         score ++; // Increment score by 1
@@ -168,6 +176,10 @@ void ofApp::update(){
                 //b.get()->setVelocity(ofRandom(-30, 30), ofRandom(-30, 30));
                 b.get()->setupTheCustomData(false);
                 bricks.push_back(b);
+                
+                //shapes.push_back(ofPtr<TextureShape>(new TextureShape));
+                //shapes.back().get()->setTexture(&textures[(int)ofRandom(textures.size())]);
+                //shapes.back().get()->setup(box2d, ofGetWidth()/2, 100, ofRandom(10, 50));
             }
             
             timer = ofGetElapsedTimef(); // Update clock
@@ -244,24 +256,22 @@ void ofApp::update(){
         ofRemove(bricks, shouldRemoveBrick);
         
         // Life lost
-        if ( ball.location.y > ofGetHeight() ){
+        if ( ball.location.y > ofGetHeight()-20 ){
             
             soundLostLife.play(); // Play sound
-            player.lives--; // die
-            
+
             if ( player.lives <= 0 ){
-                timer = ofGetElapsedTimef(); // Update clock
                 soundGameOver.play(); // Play sound
                 gameState = "gameEnd";  // Game over
             } else {
                 ball.location.x = ofGetWidth()/2; // center
-                ball.location.y = ofGetHeight()-50; // bottom
-                ball.direction.y = -10; // invert y velocity
+                ball.location.y = ofGetHeight()-70; // bottom
+                ball.direction.y = -6; // invert y velocity
                 ball.direction.x = 0; // reset x velocity
+                player.lives--; // die
             }
 
         }
-        
     }
     
     else if ( gameState=="gameEnd" ) {
@@ -310,10 +320,14 @@ void ofApp::draw(){
     ofSetColor(0,100);
     ofRect(0, 0, ofGetWidth(), ofGetHeight());
     
+    for (int i=0; i<shapes.size(); i++) {
+        shapes[i].get()->draw();
+    }
+    
     // Siempre Ventanas
     for(int i=0; i<ventanas.size(); i++) {
         ofFill();
-        ofSetHexColor(0xffffff);
+        ofSetColor( 255, ofNoise( ofGetElapsedTimef())*100 );
         ventanas[i].get()->draw();
     }
     
@@ -371,6 +385,12 @@ void ofApp::keyReleased(int key){
     switch (key) {
         case ' ':
             break;
+        case '1':
+            box2d.setGravity(0, -5);
+            break;
+        case '2':
+            box2d.setGravity(0, 1);
+            break;
         case'd':
             debug = !debug;
             break;
@@ -396,12 +416,10 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-    
 }
 
 //--------------------------------------------------------------

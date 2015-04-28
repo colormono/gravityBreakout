@@ -12,6 +12,7 @@
 #include "Brick.h"
 #include "Ball.h"
 #include "GameEvent.h"
+#include "TextureShape.h"
 
 // App
 class ofApp : public ofBaseApp{
@@ -55,9 +56,13 @@ public:
     bool useOSC; // OSC Tracking
     int userAvailable; // Check if there is a user
     ofxOscReceiver receiver; // OSC Receiver
-    
+
     // Sounds
     ofSoundPlayer soundBounce, soundBeat, soundGameOver, soundStart, soundLostLife;
+    
+    // Images
+    vector <ofImage> textures;
+    vector <ofPtr<TextureShape> > shapes;
     
     
 };
