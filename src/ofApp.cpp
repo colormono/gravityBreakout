@@ -18,6 +18,7 @@ void ofApp::setup(){
     countdown = true;
     
     // Styles
+    ofSetBackgroundAuto(false);
     ofBackground( XML.getValue("GAME:background", 100) );
     
     // Initialize world
@@ -35,6 +36,14 @@ void ofApp::setup(){
     //player.lives = XML.getValue("PLAYER:lives", 3);
     
     ball.setup();
+    
+    // Load Sounds
+    string soundFolder = "sounds/";
+    soundStart.loadSound( soundFolder+"start.mp3" );
+    soundBounce.loadSound( soundFolder+"bounce.mp3" );
+    soundBeat.loadSound( soundFolder+"beat.wav" );
+    soundLostLife.loadSound( soundFolder+"lostlife.mp3" );
+    soundGameOver.loadSound( soundFolder+"gameover.mp3" );
 
     // Listen to any of the events for the game
     ofAddListener(GameEvent::events, this, &ofApp::gameEvent);
@@ -121,16 +130,20 @@ void ofApp::update(){
     }
     
     else if ( gameState=="startGame" ) {
-        timer = ofGetElapsedTimef(); // Update clock
-
-        score = 0; // Initial score
-        player.lives = XML.getValue("STYLE:playerLives", 3); // Player lives
         
-        gameState = "welcomeVideo"; // Play welcome video
+        if( userAvailable ){
+            timer = ofGetElapsedTimef(); // Update clock
+            score = 0; // Initial score
+            ball.color.setHex(0xFFFFFF); // Set color to white again
+            player.lives = XML.getValue("STYLE:playerLives", 3); // Player lives
+            gameState = "welcomeVideo"; // Play welcome video
+        }
     }
 
     else if ( gameState=="welcomeVideo" ) {
         timer = ofGetElapsedTimef(); // Update clock
+
+        soundStart.play(); // Play start sound
         gameState = "createLevel"; // Create level
     }
     
@@ -148,7 +161,7 @@ void ofApp::update(){
         // Create bricks
         if( bricks.size() < 20 ){
             
-            if( (int)ofRandom(0, 50) == 0 ) {
+            if( (int)ofRandom(0, 20) == 0 ) {
                 ofPtr<Brick> b = ofPtr<Brick>(new Brick); // crear objeto
                 b.get()->setPhysics(0.9, 0.5, 0.1); // density, bounce, friction
                 b.get()->setup(box2d.getWorld(), ofRandom(0, ofGetWidth()), ofGetHeight()-20, ofRandom(20, 60)); // world, x, y, radio
@@ -167,10 +180,8 @@ void ofApp::update(){
     
     else if ( gameState=="playLevel" ) {
         
-        if( userAvailable ){
-            // Ball
-            ball.update();
-        }
+        // Ball
+        ball.update();
         
         // Detect Player Collision
         //ball.collisionPlayer(player);
@@ -178,6 +189,8 @@ void ofApp::update(){
            ball.location.x > player.location.x && ball.location.x < player.location.x + player.w &&
            ball.location.y >= player.location.y - ball.diametro/2
            ){
+            soundBounce.play(); // Play sound
+
             // Cambiar sentido de la direcci—n
             ball.direction.y *= -1;
             
@@ -196,9 +209,10 @@ void ofApp::update(){
             float d = ofDist( ball.location.x, ball.location.y, ventanas[i].get()->getPosition().x, ventanas[i].get()->getPosition().y );
             
             if( d < ventanas[i].get()->getWidth() ){
+                soundBounce.play(); // Play sound
+
                 // Cambiar sentido de la direcci—n
                 ball.direction.y *= -1;
-                printf("rebotar con ventana\n");
             }
         }
         
@@ -207,7 +221,8 @@ void ofApp::update(){
             float d = ofDist( ball.location.x, ball.location.y, bricks[i].get()->getPosition().x, bricks[i].get()->getPosition().y );
             
             if( d < bricks[i].get()->getRadius() ){
-                
+                soundBeat.play(); // Play sound
+
                 // Cambiar sentido de la direcci—n
                 ball.direction.y *= -1;
                 
@@ -231,10 +246,12 @@ void ofApp::update(){
         // Life lost
         if ( ball.location.y > ofGetHeight() ){
             
+            soundLostLife.play(); // Play sound
             player.lives--; // die
             
             if ( player.lives <= 0 ){
                 timer = ofGetElapsedTimef(); // Update clock
+                soundGameOver.play(); // Play sound
                 gameState = "gameEnd";  // Game over
             } else {
                 ball.location.x = ofGetWidth()/2; // center
@@ -289,6 +306,9 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    // Background
+    ofSetColor(0,100);
+    ofRect(0, 0, ofGetWidth(), ofGetHeight());
     
     // Siempre Ventanas
     for(int i=0; i<ventanas.size(); i++) {
@@ -320,8 +340,15 @@ void ofApp::draw(){
     // Game info
     ofSetColor(225);
     string info = "";
-    info += "VIDAS: "+ofToString(player.lives, 1)+"\n";
-    info += "PUNTOS: "+ofToString(score, 1)+"\n";
+
+    if( gameState == "startGame" ){
+        info += "ACERQUESE PARA JUGAR\n";
+    }
+    else if( gameState == "playLevel" ){
+        info += "VIDAS: "+ofToString(player.lives, 1)+"\n";
+        info += "PUNTOS: "+ofToString(score, 1)+"\n";
+    }
+
     ofDrawBitmapString(info, 10, 20);
     
     

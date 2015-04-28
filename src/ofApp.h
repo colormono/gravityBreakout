@@ -56,6 +56,9 @@ public:
     int userAvailable; // Check if there is a user
     ofxOscReceiver receiver; // OSC Receiver
     
+    // Sounds
+    ofSoundPlayer soundBounce, soundBeat, soundGameOver, soundStart, soundLostLife;
+    
     
 };
 
